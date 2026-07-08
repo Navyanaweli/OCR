@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NAVTOR Document Pipeline</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.0/dist/tabler-icons.min.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #111110;
+      --surface: #1c1c1a;
+      --surface-2: #252523;
+      --border: #2e2e2b;
+      --border-hover: #44443f;
+      --text-primary: #eeecea;
+      --text-secondary: #9e9d96;
+      --text-muted: #5c5c57;
+      --accent-iopp: #4a9fe8;
+      --accent-iopp-bg: #0c2a44;
+      --accent-iopp-text: #85c4f4;
+      --accent-tank: #4caf6e;
+      --accent-tank-bg: #0e2e1a;
+      --accent-tank-text: #80d49a;
+      --accent-unknown: #f4c542;
+      --accent-unknown-bg: #332600;
+      --accent-unknown-text: #ffd86b;
+      --accent-err: #e56060;
+      --accent-err-bg: #2e1010;
+      --accent-err-text: #f09090;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-display);
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 250px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 18px;
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+
+    .brand {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 34px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 13px 14px;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      cursor: pointer;
+      text-align: left;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .nav-btn.active {
+      background: var(--accent-iopp-bg);
+      color: var(--accent-iopp-text);
+      border-color: var(--accent-iopp);
+    }
+
+    .main {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      padding: 42px 48px 60px;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .header { margin-bottom: 2rem; }
+
+    .header-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 30px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      max-width: 560px;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 760px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .drop-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 2.8rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      background: var(--surface-2);
+      position: relative;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--border-hover);
+      background: var(--bg);
+    }
+
+    .drop-zone.over {
+      border-color: var(--accent-iopp);
+      background: var(--accent-iopp-bg);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-icon {
+      font-size: 30px;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .drop-zone h2 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .drop-zone p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    #result-area { margin-top: 1rem; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      max-width: 920px;
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .record-count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 3px 9px;
+      color: var(--text-muted);
+    }
+
+    .stored-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      max-width: 920px;
+    }
+
+    .stored-row { border-bottom: 1px solid var(--border); }
+    .stored-row:last-child { border-bottom: none; }
+
+    .stored-row-header {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+    }
+
+    .stored-row-header:hover { background: var(--surface-2); }
+
+    .stored-filename {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .stored-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .badge-iopp {
+      background: var(--accent-iopp-bg);
+      color: var(--accent-iopp-text);
+    }
+
+    .badge-tank {
+      background: var(--accent-tank-bg);
+      color: var(--accent-tank-text);
+    }
+
+    .badge-unknown {
+      background: var(--accent-unknown-bg);
+      color: var(--accent-unknown-text);
+    }
+
+    .badge-err {
+      background: var(--accent-err-bg);
+      color: var(--accent-err-text);
+    }
+
+    .view-btn {
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--accent-iopp-text);
+      padding: 5px 11px;
+      border-radius: 7px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .view-btn:hover { background: var(--accent-iopp-bg); }
+
+    .tank-btn { color: var(--accent-tank-text); }
+    .tank-btn:hover { background: var(--accent-tank-bg); }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 3px 5px;
+      border-radius: 4px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .delete-btn:hover {
+      color: var(--accent-err-text);
+      background: var(--accent-err-bg);
+    }
+
+    .stored-detail {
+      display: none;
+      padding: 0 16px 16px;
+      background: var(--surface-2);
+      border-top: 1px solid var(--border);
+    }
+
+    .stored-detail.open { display: block; }
+
+    .empty-state {
+      padding: 2rem;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .result-block {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .result-header {
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 8px;
+      margin-bottom: 5px;
+    }
+
+    .file-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .result-body {
+      padding: 1rem 1.25rem;
+      background: var(--surface-2);
+    }
+
+    .tier-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+
+    .reason-box {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .loading-block {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .loading-block p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .extract-panel {
+      margin-top: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .extract-section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 14px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tank-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .tank-table th {
+      text-align: left;
+      padding: 6px 8px;
+      background: var(--surface);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+
+    .tank-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .tank-table .total-row td {
+      font-weight: 600;
+      color: var(--accent-iopp-text);
+      background: var(--accent-iopp-bg);
+    }
+
+    .disposal-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .disposal-item .check {
+      color: var(--accent-tank);
+      font-size: 14px;
+    }
+
+    .disposal-item .cross {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spin {
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar">
+    <div class="brand">NAVTOR<br />Document Pipeline</div>
+
+    <button type="button" class="nav-btn active" onclick="showSection('upload', this)">
+      <i class="ti ti-upload"></i> Upload
+    </button>
+
+    <button type="button" class="nav-btn" onclick="showSection('iopp', this)">
+      <i class="ti ti-file-certificate"></i> IOPP
+    </button>
+
+    <button type="button" class="nav-btn" onclick="showSection('tank', this)">
+      <i class="ti ti-chart-grid-dots"></i> Tank Diagram
+    </button>
+  </aside>
+
+  <main class="main">
+
+    <section id="upload" class="section active">
+      <div class="header">
+        <p class="header-eyebrow">NAVTOR &middot; Document Pipeline</p>
+        <h1>Document Classifier</h1>
+        <p>Upload a PDF to classify it as an IOPP Certificate Supplement, Tank Diagram, or Unknown. All uploads are stored.</p>
+      </div>
+
+      <div class="card">
+        <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Upload PDF">
+          <input type="file" id="file-input" accept=".pdf" />
+          <i class="ti ti-upload drop-icon"></i>
+          <h2>Drop PDF here</h2>
+          <p>or click to browse your files</p>
+        </div>
+
+        <div id="result-area"></div>
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">All Stored Documents</span>
+        <span class="record-count" id="all-count">0</span>
+      </div>
+
+      <div class="stored-card" id="all-list">
+        <div class="empty-state">No documents uploaded yet.</div>
+      </div>
+    </section>
+
+    <section id="iopp" class="section">
+      <div class="header">
+        <p class="header-eyebrow">Extracted Module</p>
+        <h1>IOPP Documents</h1>
+        <p>IOPP documents appear here. Click View to extract sludge tanks, disposal means, and bilge water holding tanks.</p>
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">IOPP Documents</span>
+        <span class="record-count" id="iopp-count">0</span>
+      </div>
+
+      <div class="stored-card" id="iopp-list">
+        <div class="empty-state">No IOPP documents uploaded yet.</div>
+      </div>
+    </section>
+
+    <section id="tank" class="section">
+      <div class="header">
+        <p class="header-eyebrow">Future Module</p>
+        <h1>Tank Diagram Documents</h1>
+        <p>Tank Diagram documents appear here with a View button. Extraction output is not implemented yet.</p>
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">Tank Diagram Documents</span>
+        <span class="record-count" id="tank-count">0</span>
+      </div>
+
+      <div class="stored-card" id="tank-list">
+        <div class="empty-state">No Tank Diagram documents uploaded yet.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const API_BASE = 'http://localhost:5214';
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const resultArea = document.getElementById('result-area');
+
+    const allList = document.getElementById('all-list');
+    const ioppList = document.getElementById('iopp-list');
+    const tankList = document.getElementById('tank-list');
+
+    const allCount = document.getElementById('all-count');
+    const ioppCount = document.getElementById('iopp-count');
+    const tankCount = document.getElementById('tank-count');
+
+    let isProcessing = false;
+
+    function showSection(id, btn) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(id).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function fmtSize(b) {
+      if (!b) return '';
+      if (b < 1024) return b + ' B';
+      if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(1) + ' MB';
+    }
+
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[c]));
+    }
+
+    function normalizeRecord(r) {
+      return {
+        id: r.id,
+        filename: r.filename,
+        documentType: r.documentType ?? r.document_type,
+        reason: r.reason,
+        tier: r.tier,
+        uploadedAt: r.uploadedAt ?? r.uploaded_at,
+        sizeBytes: r.sizeBytes ?? r.size_bytes,
+        extracted: r.extracted ?? null
+      };
+    }
+
+    function getDocStyle(t) {
+      if (t === 'IOPP Certificate Supplement') {
+        return { badgeCls: 'badge-iopp', docIcon: 'ti-file-certificate', label: 'IOPP' };
+      }
+
+      if (t === 'Tank Diagram / Capacity Plan') {
+        return { badgeCls: 'badge-tank', docIcon: 'ti-chart-grid-dots', label: 'Tank Diagram' };
+      }
+
+      return { badgeCls: 'badge-unknown', docIcon: 'ti-help-circle', label: 'Unknown' };
+    }
+
+    function getTierIcon(tier) {
+      if (!tier) return 'ti-server';
+      if (tier.includes('Tier 1')) return 'ti-text-scan-2';
+      if (tier.includes('Tier 2')) return 'ti-tag';
+      if (tier.includes('Tier 3')) return 'ti-tags';
+      return 'ti-circle-off';
+    }
+
+    async function loadRecords() {
+      try {
+        const res = await fetch(`${API_BASE}/records`);
+        if (!res.ok) throw new Error('Could not load records');
+
+        const records = (await res.json()).map(normalizeRecord);
+        renderLists(records);
+      } catch {
+        allList.innerHTML = '<div class="empty-state">Could not load records. Make sure backend is running.</div>';
+      }
+    }
+
+    function renderLists(records) {
+      const ioppRecords = records.filter(r => r.documentType === 'IOPP Certificate Supplement');
+      const tankRecords = records.filter(r => r.documentType === 'Tank Diagram / Capacity Plan');
+
+      allCount.textContent = records.length;
+      ioppCount.textContent = ioppRecords.length;
+      tankCount.textContent = tankRecords.length;
+
+      allList.innerHTML = records.length
+        ? records.map(r => rowHtml(r, 'all')).join('')
+        : '<div class="empty-state">No documents uploaded yet.</div>';
+
+      ioppList.innerHTML = ioppRecords.length
+        ? ioppRecords.map(r => rowHtml(r, 'iopp')).join('')
+        : '<div class="empty-state">No IOPP documents uploaded yet.</div>';
+
+      tankList.innerHTML = tankRecords.length
+        ? tankRecords.map(r => rowHtml(r, 'tank')).join('')
+        : '<div class="empty-state">No Tank Diagram documents uploaded yet.</div>';
+    }
+
+    function rowHtml(r, listType) {
+      const s = getDocStyle(r.documentType);
+      const safeId = esc(r.id);
+      const rowId = `${listType}-${safeId}`;
+
+      const isIopp = r.documentType === 'IOPP Certificate Supplement';
+      const isTank = r.documentType === 'Tank Diagram / Capacity Plan';
+
+      let actionButton = '<span></span>';
+
+      if (isIopp) {
+        actionButton = `
+          <button type="button" class="view-btn" onclick="event.preventDefault(); event.stopPropagation(); toggleIoppDetails('${safeId}', '${listType}')">
+            <i id="arrow-${listType}-${safeId}" class="ti ti-chevron-down"></i> View
+          </button>`;
+      }
+
+      if (isTank) {
+        actionButton = `
+          <button type="button" class="view-btn tank-btn" onclick="event.preventDefault(); event.stopPropagation(); toggleTankDetails('${safeId}', '${listType}')">
+            <i id="arrow-${listType}-${safeId}" class="ti ti-chevron-down"></i> View
+          </button>`;
+      }
+
+      return `
+        <div class="stored-row" id="row-${rowId}">
+          <div class="stored-row-header">
+            <span class="stored-filename" title="${esc(r.filename)}">${esc(r.filename)}</span>
+
+            <span class="stored-meta">
+              ${fmtSize(r.sizeBytes)} &middot; ${esc(r.uploadedAt)}
+            </span>
+
+            <span class="badge ${s.badgeCls}">
+              <i class="ti ${s.docIcon}"></i>${s.label}
+            </span>
+
+            ${actionButton}
+
+            <button type="button" class="delete-btn" onclick="event.preventDefault(); event.stopPropagation(); deleteRecord('${safeId}')" title="Delete">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+
+          <div class="stored-detail" id="detail-${listType}-${safeId}">
+            <div id="detail-content-${listType}-${safeId}" style="padding-top:10px;">
+              <p style="font-size:12px;color:var(--text-muted);">
+                ${isIopp ? 'Click View to load IOPP extraction data.' : isTank ? 'Click View to open Tank Diagram extraction.' : 'No extraction available for this document type.'}
+              </p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function setArrow(id, listType, open) {
+      const arrow = document.getElementById(`arrow-${listType}-${id}`);
+      if (!arrow) return;
+
+      arrow.classList.remove(open ? 'ti-chevron-down' : 'ti-chevron-up');
+      arrow.classList.add(open ? 'ti-chevron-up' : 'ti-chevron-down');
+    }
+
+    async function toggleIoppDetails(id, listType) {
+      const panel = document.getElementById(`detail-${listType}-${id}`);
+
+      if (!panel) return;
+
+      if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        setArrow(id, listType, false);
+        return;
+      }
+
+      setArrow(id, listType, true);
+      await viewDetails(id, listType);
+    }
+
+    function toggleTankDetails(id, listType) {
+      const panel = document.getElementById(`detail-${listType}-${id}`);
+
+      if (!panel) return;
+
+      if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        setArrow(id, listType, false);
+        return;
+      }
+
+      setArrow(id, listType, true);
+      tankPlaceholder(id, listType);
+    }
+
+    async function viewDetails(id, listType) {
+      const panel = document.getElementById(`detail-${listType}-${id}`);
+      const content = document.getElementById(`detail-content-${listType}-${id}`);
+
+      if (!panel || !content) return;
+
+      panel.classList.add('open');
+
+      content.innerHTML = `
+        <p style="font-size:12px;color:var(--text-muted);padding:8px 0;">
+          <i class="ti ti-loader spin"></i> Loading extracted IOPP data...
+        </p>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/extract-saved/${id}`);
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+        const data = await res.json();
+        content.innerHTML = buildExtractHtml(data);
+      } catch (err) {
+        content.innerHTML = `
+          <p style="font-size:12px;color:var(--accent-err-text);padding:8px 0;">
+            Failed to load: ${esc(err.message)}
+          </p>`;
+      }
+    }
+
+    function tankPlaceholder(id, listType) {
+      const panel = document.getElementById(`detail-${listType}-${id}`);
+      const content = document.getElementById(`detail-content-${listType}-${id}`);
+
+      if (!panel || !content) return;
+
+      panel.classList.add('open');
+
+      content.innerHTML = `
+        <div class="extract-panel">
+          <div class="extract-section-title">
+            <i class="ti ti-chart-grid-dots"></i> Tank Diagram Extraction
+          </div>
+
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+            Tank Diagram extraction button is available, but extraction output is not implemented yet.
+          </p>
+        </div>`;
+    }
+
+    function buildExtractHtml(data) {
+      const s31 = data.section_3_1_sludge_tanks;
+      const s32 = data.section_3_2_disposal_means;
+      const s33 = data.section_3_3_bilge_water_holding_tanks;
+
+      function tankTable(tanks, total) {
+        if (!tanks || tanks.length === 0) {
+          return '<p style="font-size:12px;color:var(--text-muted)">No tanks found.</p>';
+        }
+
+        return `
+          <table class="tank-table">
+            <thead>
+              <tr>
+                <th>Tank</th>
+                <th>Frames</th>
+                <th>Pos</th>
+                <th>Vol (m³)</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${tanks.map(t => `
+                <tr>
+                  <td>${esc(t.tank_identification)}</td>
+                  <td>${esc(t.frames_from)}–${esc(t.frames_to)}</td>
+                  <td>${esc(t.lateral_position)}</td>
+                  <td>${esc(t.volume_m3)}</td>
+                </tr>
+              `).join('')}
+
+              <tr class="total-row">
+                <td colspan="3">Total</td>
+                <td>${esc(total ?? '—')}</td>
+              </tr>
+            </tbody>
+          </table>`;
+      }
+
+      function disposalItem(checked, label) {
+        return `
+          <div class="disposal-item">
+            <i class="ti ${checked ? 'ti-circle-check check' : 'ti-circle-dashed cross'}"></i>
+            <span>${label}</span>
+          </div>`;
+      }
+
+      return `
+        <div class="extract-panel">
+          <div class="extract-section-title">
+            <i class="ti ti-droplet"></i> 3.1 · Sludge Tanks
+          </div>
+
+          ${tankTable(s31?.tanks, s31?.total_volume_m3)}
+
+          <div class="extract-section-title">
+            <i class="ti ti-flame"></i> 3.2 · Disposal Means
+          </div>
+
+          ${disposalItem(s32?.incinerator_for_sludge, '3.2.1 Incinerator for oil residues (sludge)')}
+          ${disposalItem(s32?.auxiliary_boiler, '3.2.2 Auxiliary boiler')}
+          ${disposalItem(
+            s32?.other_acceptable_means,
+            '3.2.3 Other means' + (s32?.other_means_description ? ': ' + esc(s32.other_means_description) : '')
+          )}
+
+          <div class="extract-section-title">
+            <i class="ti ti-droplet-half-2"></i> 3.3 · Bilge Water Holding Tanks
+          </div>
+
+          ${tankTable(s33?.tanks, s33?.total_volume_m3)}
+        </div>`;
+    }
+
+    async function deleteRecord(id) {
+      if (!confirm('Delete this document?')) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/records/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (!res.ok) throw new Error('Delete failed');
+
+        await loadRecords();
+      } catch {
+        alert('Could not delete. Make sure the backend is running.');
+      }
+    }
+
+    function renderResult(record) {
+      const s = getDocStyle(record.documentType);
+      const tierIcon = getTierIcon(record.tier);
+
+      resultArea.innerHTML = `
+        <div class="result-block">
+          <div class="result-header">
+            <div>
+              <span class="badge ${s.badgeCls}">
+                <i class="ti ${s.docIcon}"></i> ${esc(record.documentType)}
+              </span>
+
+              <p class="file-name" title="${esc(record.filename)}">${esc(record.filename)}</p>
+
+              <div class="file-meta">
+                <i class="ti ti-file-type-pdf"></i>
+                <span>${fmtSize(record.sizeBytes)}</span>
+                <span>&middot;</span>
+                <span>${esc(record.uploadedAt)}</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="result-body">
+            <div class="tier-label">
+              <i class="ti ti-route"></i> ${esc(record.tier)}
+            </div>
+
+            <div class="reason-box">
+              <i class="ti ${tierIcon}"></i>
+              <span>${esc(record.reason)}</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function showError(msg) {
+      resultArea.innerHTML = `
+        <div class="result-block">
+          <div class="result-header">
+            <div>
+              <span class="badge badge-err">
+                <i class="ti ti-alert-triangle"></i> Error
+              </span>
+
+              <p style="font-size:14px;color:var(--text-secondary);margin-top:8px;">
+                ${msg}
+              </p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function showLoading() {
+      resultArea.innerHTML = `
+        <div class="loading-block">
+          <i class="ti ti-loader spin" style="font-size:22px;color:var(--text-muted);"></i>
+          <p>Classifying and storing document...</p>
+        </div>`;
+    }
+
+    async function handleFile(file) {
+      if (!file || file.type !== 'application/pdf') {
+        showError('Please upload a valid PDF file.');
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+
+        const response = await fetch(`${API_BASE}/classify`, {
+          method: 'POST',
+          body: fd
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.detail || `Server error ${response.status}`);
+        }
+
+        const record = normalizeRecord(await response.json());
+
+        renderResult(record);
+        await loadRecords();
+
+      } catch (err) {
+        showError(`
+          Could not classify the file. Make sure the backend is running.
+          <br>
+          <small style="opacity:0.7;">${esc(err.message)}</small>
+        `);
+      } finally {
+        fileInput.value = '';
+        isProcessing = false;
+      }
+    }
+
+    dropZone.addEventListener('click', e => {
+      if (e.target !== fileInput) fileInput.click();
+    });
+
+    dropZone.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener('click', e => e.stopPropagation());
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file || isProcessing) return;
+
+      isProcessing = true;
+      await handleFile(file);
+    });
+
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('over');
+    });
+
+    dropZone.addEventListener('drop', async e => {
+      e.preventDefault();
+      dropZone.classList.remove('over');
+
+      const file = e.dataTransfer.files[0];
+      if (!file || isProcessing) return;
+
+      isProcessing = true;
+      await handleFile(file);
+    });
+
+    loadRecords();
+  </script>
+</body>
+</html>

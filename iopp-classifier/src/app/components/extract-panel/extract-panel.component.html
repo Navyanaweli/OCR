@@ -1,0 +1,59 @@
+<div class="extract-panel" *ngIf="data">
+
+  <div class="section-title">3.1 · Sludge Tanks</div>
+  <table class="tank-table" *ngIf="s31?.tanks?.length; else noTanks31">
+    <thead><tr><th>Tank</th><th>Frames</th><th>Pos</th><th>Vol (m³)</th></tr></thead>
+    <tbody>
+      <tr *ngFor="let t of s31.tanks">
+        <td>{{ t.tank_identification }}</td>
+        <td>{{ t.frames_from }}–{{ t.frames_to }}</td>
+        <td>{{ t.lateral_position }}</td>
+        <td>{{ t.volume_m3 }}</td>
+      </tr>
+      <tr class="total-row">
+        <td colspan="3">Total</td>
+        <td>{{ s31.total_volume_m3 !== null ? s31.total_volume_m3 : "—" }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <ng-template #noTanks31><p class="no-data">No tanks found.</p></ng-template>
+
+  <div class="section-title">3.2 · Disposal Means</div>
+  <div class="disposal-item" *ngIf="s32">
+    <span class="icon" [class.check]="s32.incinerator_for_sludge" [class.cross]="!s32.incinerator_for_sludge">
+      {{ s32.incinerator_for_sludge ? '✓' : '○' }}
+    </span>
+    <span>3.2.1 Incinerator for oil residues (sludge)</span>
+  </div>
+  <div class="disposal-item" *ngIf="s32">
+    <span class="icon" [class.check]="s32.auxiliary_boiler" [class.cross]="!s32.auxiliary_boiler">
+      {{ s32.auxiliary_boiler ? '✓' : '○' }}
+    </span>
+    <span>3.2.2 Auxiliary boiler</span>
+  </div>
+  <div class="disposal-item" *ngIf="s32">
+    <span class="icon" [class.check]="s32.other_acceptable_means" [class.cross]="!s32.other_acceptable_means">
+      {{ s32.other_acceptable_means ? '✓' : '○' }}
+    </span>
+    <span>3.2.3 Other means<span *ngIf="s32.other_means_description">: {{ s32.other_means_description }}</span></span>
+  </div>
+
+  <div class="section-title">3.3 · Bilge Water Holding Tanks</div>
+  <table class="tank-table" *ngIf="s33?.tanks?.length; else noTanks33">
+    <thead><tr><th>Tank</th><th>Frames</th><th>Pos</th><th>Vol (m³)</th></tr></thead>
+    <tbody>
+      <tr *ngFor="let t of s33.tanks">
+        <td>{{ t.tank_identification }}</td>
+        <td>{{ t.frames_from }}–{{ t.frames_to }}</td>
+        <td>{{ t.lateral_position }}</td>
+        <td>{{ t.volume_m3 }}</td>
+      </tr>
+      <tr class="total-row">
+        <td colspan="3">Total</td>
+        <td>{{ s33.total_volume_m3 !== null ? s33.total_volume_m3 : "—" }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <ng-template #noTanks33><p class="no-data">No tanks found.</p></ng-template>
+
+</div>

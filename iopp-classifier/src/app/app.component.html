@@ -1,0 +1,29 @@
+<aside class="sidebar">
+  <div class="brand">NAVTOR<br />Document Pipeline</div>
+
+  <button class="nav-btn" [class.active]="activeSection === 'upload'" (click)="showSection('upload')">
+    <i class="ti ti-upload"></i> Upload
+  </button>
+
+  <button class="nav-btn" [class.active]="activeSection === 'iopp'" (click)="showSection('iopp')">
+    <i class="ti ti-file-certificate"></i> IOPP
+  </button>
+
+  <button class="nav-btn" [class.active]="activeSection === 'tank'" (click)="showSection('tank')">
+    <i class="ti ti-chart-grid-dots"></i> Tank Diagram
+  </button>
+</aside>
+
+<main class="main">
+  <section [class.active]="activeSection === 'upload'">
+    <app-upload (classified)="onClassified($event)"></app-upload>
+  </section>
+
+  <section [class.active]="activeSection === 'iopp'">
+    <app-storage [newRecord]="latestRecord" [filterType]="'iopp'"></app-storage>
+  </section>
+
+  <section [class.active]="activeSection === 'tank'">
+    <app-storage [newRecord]="latestRecord" [filterType]="'tank'"></app-storage>
+  </section>
+</main>

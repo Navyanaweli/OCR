@@ -1,0 +1,69 @@
+<div class="header">
+  <p class="header-eyebrow">{{ eyebrow }}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ description }}</p>
+</div>
+
+<div class="section-header">
+  <span class="section-title">{{ title }}</span>
+  <span class="record-count">{{ records.length }}</span>
+</div>
+
+<div class="stored-card">
+  <div class="empty-state" *ngIf="records.length === 0">{{ emptyMessage }}</div>
+
+  <div class="stored-row" *ngFor="let r of records" [id]="'row-' + r.id">
+    <div class="stored-row-header">
+      <span class="stored-filename" [title]="r.filename">{{ r.filename }}</span>
+      <span class="stored-meta">{{ fmtSize(r.size_bytes) }} · {{ r.uploaded_at }}</span>
+      <span class="badge" [ngClass]="getDocStyle(r.document_type).badgeCls">
+        <i class="ti" [ngClass]="getDocStyle(r.document_type).docIcon"></i>
+        {{ getDocStyle(r.document_type).label }}
+      </span>
+
+      <!-- IOPP View button -->
+      <button class="view-btn" *ngIf="filterType === 'iopp'" (click)="toggleDetail(r.id)">
+        <i class="ti" [ngClass]="expandedId === r.id ? 'ti-chevron-up' : 'ti-chevron-down'"></i>
+        View
+      </button>
+
+      <!-- Tank placeholder button -->
+      <button class="view-btn tank-btn" *ngIf="filterType === 'tank'" (click)="toggleDetail(r.id)">
+        <i class="ti" [ngClass]="expandedId === r.id ? 'ti-chevron-up' : 'ti-chevron-down'"></i>
+        View
+      </button>
+
+      <!-- Spacer for all list -->
+      <span *ngIf="filterType === 'all'"></span>
+
+      <button class="delete-btn" (click)="deleteRecord(r.id)" title="Delete">
+        <i class="ti ti-trash"></i>
+      </button>
+    </div>
+
+    <!-- Expandable detail -->
+    <div class="stored-detail" [class.open]="expandedId === r.id">
+      <div style="padding-top:10px;">
+        <!-- Loading -->
+        <p class="loading-text" *ngIf="loadingId === r.id">
+          <i class="ti ti-loader spin"></i> Loading...
+        </p>
+
+        <!-- IOPP extracted data -->
+        <app-extract-panel *ngIf="filterType === 'iopp' && extractedMap[r.id] && loadingId !== r.id"
+          [data]="extractedMap[r.id]">
+        </app-extract-panel>
+
+        <!-- Tank placeholder -->
+        <div *ngIf="filterType === 'tank' && expandedId === r.id && loadingId !== r.id" class="extract-panel">
+          <div class="extract-section-title">
+            <i class="ti ti-chart-grid-dots"></i> Tank Diagram Extraction
+          </div>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+            Tank Diagram extraction is not implemented yet.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

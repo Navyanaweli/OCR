@@ -1,0 +1,80 @@
+<div class="header">
+  <p class="header-eyebrow">NAVTOR · Document Pipeline</p>
+  <h1>Document Classifier</h1>
+  <p>Upload a PDF to classify it as an IOPP Certificate Supplement, Tank Diagram, or Unknown. All uploads are stored.</p>
+</div>
+
+<div class="card">
+  <div class="drop-zone"
+       [class.over]="isDragOver"
+       (dragover)="onDragOver($event)"
+       (dragleave)="onDragLeave()"
+       (drop)="onDrop($event)"
+       (click)="fileInput.click()">
+    <input #fileInput type="file" accept=".pdf" (change)="onFileSelected($event)" style="display:none" />
+    <i class="ti ti-upload drop-icon"></i>
+    <h2>Drop PDF here</h2>
+    <p>or click to browse your files</p>
+  </div>
+
+  <div class="loading-block" *ngIf="isLoading">
+    <i class="ti ti-loader spin" style="font-size:22px;"></i>
+    <p>Classifying and storing document...</p>
+  </div>
+
+  <div class="result-block" *ngIf="result && !isLoading">
+    <div class="result-header">
+      <div>
+        <span class="badge" [ngClass]="resultStyle.badgeCls">
+          <i class="ti" [ngClass]="resultStyle.docIcon"></i> {{ result.document_type }}
+        </span>
+        <p class="file-name">{{ result.filename }}</p>
+        <div class="file-meta">
+          <i class="ti ti-file-type-pdf"></i>
+          <span>{{ fmtSize(result.size_bytes) }}</span>
+          <span>&middot;</span>
+          <span>{{ result.uploaded_at }}</span>
+        </div>
+      </div>
+    </div>
+    <hr class="divider" />
+    <div class="result-body">
+      <div class="tier-label">
+        <i class="ti ti-route"></i> {{ result.tier }}
+      </div>
+      <div class="reason-box">
+        <i class="ti" [ngClass]="getTierIcon(result.tier)"></i>
+        <span>{{ result.reason }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-block" *ngIf="error">
+    <span class="badge badge-err"><i class="ti ti-alert-triangle"></i> Error</span>
+    <p>{{ error }}</p>
+  </div>
+</div>
+
+<!-- All stored documents -->
+<div class="section-header">
+  <span class="section-title">All Stored Documents</span>
+  <span class="record-count">{{ allRecords.length }}</span>
+</div>
+
+<div class="stored-card">
+  <div class="empty-state" *ngIf="allRecords.length === 0">No documents uploaded yet.</div>
+  <div class="stored-row" *ngFor="let r of allRecords">
+    <div class="stored-row-header">
+      <span class="stored-filename" [title]="r.filename">{{ r.filename }}</span>
+      <span class="stored-meta">{{ fmtSize(r.size_bytes) }} · {{ r.uploaded_at }}</span>
+      <span class="badge" [ngClass]="getDocStyle(r.document_type).badgeCls">
+        <i class="ti" [ngClass]="getDocStyle(r.document_type).docIcon"></i>
+        {{ getDocStyle(r.document_type).label }}
+      </span>
+      <span></span>
+      <button class="delete-btn" (click)="deleteRecord(r.id)" title="Delete">
+        <i class="ti ti-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>
